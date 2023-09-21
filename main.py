@@ -1,15 +1,14 @@
-import tensorflow
+import tensorflow as tf
 from flask import Flask, request, jsonify, render_template
-from keras.models import load_model
-from keras.utils import load_img, img_to_array
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
 import numpy as np
 import os
 
 app = Flask(__name__)
 
 # Load the pre-trained machine learning model
-model = tensorflow.keras.models.load_model('trained_model (1).h5')
-result = 0
+model = tf.keras.models.load_model('final_project/trained_model (1).h5')
 
 # Define a function to preprocess the uploaded image
 def preprocess_image(image_path):
@@ -23,7 +22,7 @@ def preprocess_image(image_path):
 # Define the Flask route for the home page
 @app.route('/')
 def index():
-    return render_template('index.html', result=result)
+    return render_template('index.html', result=None, file=None)  # Pass 'file' as None
 
 # Define the Flask route for the prediction API
 @app.route('/predict', methods=['POST'])
@@ -46,12 +45,12 @@ def predict():
     image = preprocess_image(file_path)
     prediction = model.predict(image)[0]
     species = ['African_Elephant', 'Amur_Leopard', 'Arctic_Fox', 'Chimpanzee', 'Jaguars', 'Lion', 'Orangutan', 'Panda', 'Panthers', 'Rhino', 'cheetahs']
-    result = str({'species': species[np.argmax(prediction)], 'confidence': float(max(prediction))})
-    print(species[np.argmax(prediction)])
+    result = {'species': species[np.argmax(prediction)], 'confidence': float(max(prediction))}
+
     # Remove the temporary file
     os.remove(file_path)
 
-    return render_template('result.html', output=result)
+    return render_template('index.html', result=result, file=file)  # Pass 'file' to the template
 
 if __name__ == '__main__':
     app.run(debug=True)
